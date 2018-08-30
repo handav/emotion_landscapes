@@ -1,6 +1,6 @@
 import math
 import torch
-import socket
+#import socket
 import argparse
 import os
 import numpy as np
@@ -15,29 +15,16 @@ from skimage.measure import compare_ssim as ssim_metric
 from scipy import signal
 from scipy import ndimage
 from PIL import Image, ImageDraw
-
-
 import torchvision
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 import imageio
 
 
-hostname = socket.gethostname()
+#hostname = socket.gethostname()
 
 def load_dataset(opt):
-    if opt.dataset == 'cifar':
-        transform = transforms.Compose([
-        # you can add other transformations in this list
-            transforms.ToTensor(),
-            ])
-                
-        train_data = torchvision.datasets.CIFAR10(
-                root=opt.data_root, 
-                train=True, 
-                download=True, 
-                transform=transform)
-    elif opt.dataset == 'emotion_landscapes':
+    if opt.dataset == 'emotion_landscapes':
         from emo_landscapes_loader import EmotionLoader
         transform = transforms.Compose([
             transforms.RandomCrop(300),
@@ -51,7 +38,6 @@ def load_dataset(opt):
                 all_labels=('all_labels' in opt and opt.all_labels) or False)
     else:
         raise ValueError('Unknown dataset %s' % opt.dataset)
-    
     return train_data
 
 def is_sequence(arg):

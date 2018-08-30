@@ -30,7 +30,6 @@ class EmotionLoader(object):
         for line in open(fname, 'r'):
             path, labels = line.split(',')
             path = '.' + path
-            print(path)
             labels = [emotions[l] for l in labels.strip().split(' ')]
             data.append([path, labels])
         self.data = data

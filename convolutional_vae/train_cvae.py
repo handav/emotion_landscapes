@@ -1,3 +1,4 @@
+# modules to import
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -33,6 +34,7 @@ parser.add_argument('--beta', default=0.001, type=float, help='learning rate')
 parser.add_argument('--all_labels', action='store_true', help='if true, give full distribution over labels to G and D')
 
 opt = parser.parse_args()
+assert(opt.all_labels)
 
 name = 'z_dim=%d-lr=%.5f-beta=%.4f-all_labels=%s' % (opt.z_dim, opt.lr, opt.beta, opt.all_labels)
 opt.log_dir = '%s/%s_%dx%d/%s' % (opt.log_dir, opt.dataset, opt.image_width, opt.image_width, name)
@@ -152,24 +154,6 @@ def plot_gen(x, epoch):
         fname = '%s/gen/p_%d.png' % (opt.log_dir, epoch) 
         utils.save_tensors_image(fname, to_plot)
 
-    y_onehot = y_onehot.view(opt.batch_size, opt.nclass, 1, 1)
-
-    # different class per row
-    y_onehot = torch.Tensor(opt.batch_size, opt.nclass, 1, 1).cuda().zero_()
-    for i in range(nrow):
-        for j in range(ncol):
-            y_onehot[i*ncol+j][i] = 1
-    gen = model.decode(z_fixed, y_onehot)
-
-    to_plot = []
-    for i in range(nrow):
-        row = []
-        for j in range(ncol):
-            row.append(gen[i*ncol+j])
-        to_plot.append(row)
-
-    fname = '%s/gen/%d.png' % (opt.log_dir, epoch) 
-    utils.save_tensors_image(fname, to_plot)
 
 def plot_rec(x, epoch):
     x, y, yp = x
@@ -246,12 +230,11 @@ for epoch in range(opt.niter):
     plot_gen(x, epoch)
 
     # save the model
-    if opt.save_model and epoch % 10 == 0:
+    if opt.save_model and epoch % 5 == 0:
         torch.save({
-            'netD': netD,
-            'netG': netG,
+            'model': model,
             'opt': opt},
             '%s/model.pth' % opt.log_dir)
-    if epoch % 10 == 0:
+    if epoch % 5 == 0:
         print('log dir: %s' % opt.log_dir)
             

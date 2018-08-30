@@ -34,7 +34,7 @@ parser.add_argument('--nclass', type=int, default=9, help='number of classes (sh
 parser.add_argument('--save_model', action='store_true', help='if true, save the model throughout training')
 parser.add_argument('--beta', default=0.001, type=float, help='learning rate')
 parser.add_argument('--all_labels', action='store_true', help='if true, give full distribution over labels to G and D')
-parser.add_argument('--nlevels', type=int, default=3, help='number of data loading threads')
+parser.add_argument('--nlevels', type=int, default=3, help='number of levels')
 
 opt = parser.parse_args()
 
@@ -290,10 +290,10 @@ for epoch in range(opt.niter):
     plot_gen(epoch)
 
     # save the model
-    if False and epoch % 10 == 0:
+    if opt.save_model and epoch % 10 == 0:
         torch.save({
-            'netE': netE,
             'netD': netD,
+            'netE': netE,
             'opt': opt},
             '%s/model.pth' % opt.log_dir)
     if epoch % 10 == 0:
