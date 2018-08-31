@@ -8,4 +8,5 @@ python train_mscvae.py --beta 0.00005 --all_labels --z_dim 8 --image_width 64 --
 See all additional arguments in the train_mscvae.py script.
 
 http://hannahishere.com/
-@ahandvanish
+
+https://twitter.com/ahandvanish
