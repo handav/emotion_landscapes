@@ -5,7 +5,6 @@ from torchvision import transforms
 import os.path
 
 class EmotionLoader(object):
-
     """Data Handler that loads robot pushing data."""
 
     def __init__(self, transform, all_labels=False):
@@ -22,7 +21,6 @@ class EmotionLoader(object):
                 'disgust'       : 6,
                 'anger'         : 7,
                 'none'          : 8}
-
 
         data = []
         for line in open(fname, 'r'):
