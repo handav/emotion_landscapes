@@ -1,6 +1,5 @@
 import math
 import torch
-import socket
 import argparse
 import os
 import numpy as np
@@ -15,23 +14,17 @@ from skimage.measure import compare_ssim as ssim_metric
 from scipy import signal
 from scipy import ndimage
 from PIL import Image, ImageDraw
-
-
 import torchvision
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 import imageio
-
-
-hostname = socket.gethostname()
 
 def load_dataset(opt):
     if opt.dataset == 'cifar':
         transform = transforms.Compose([
         # you can add other transformations in this list
             transforms.ToTensor(),
-            ])
-                
+            ])  
         train_data = torchvision.datasets.CIFAR10(
                 root=opt.data_root, 
                 train=True, 
@@ -51,7 +44,6 @@ def load_dataset(opt):
                 all_labels=('all_labels' in opt and opt.all_labels) or False)
     else:
         raise ValueError('Unknown dataset %s' % opt.dataset)
-    
     return train_data
 
 def is_sequence(arg):
@@ -62,9 +54,7 @@ def is_sequence(arg):
             hasattr(arg, "__iter__")))
 
 def image_tensor(inputs, padding=1):
-    # assert is_sequence(inputs)
     assert len(inputs) > 0
-    # print(inputs)
 
     # if this is a list of lists, unpack them all and grid them up
     if is_sequence(inputs[0]) or (hasattr(inputs, "dim") and inputs.dim() > 4):
@@ -127,12 +117,6 @@ def save_image(filename, tensor):
 def save_tensors_image(filename, inputs, padding=1):
     images = image_tensor(inputs, padding)
     return save_image(filename, images)
-
-def prod(l):
-    return functools.reduce(lambda x, y: x * y, l)
-
-def batch_flatten(x):
-    return x.resize(x.size(0), prod(x.size()[1:]))
 
 def clear_progressbar():
     # moves up 3 lines

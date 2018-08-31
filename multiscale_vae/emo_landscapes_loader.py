@@ -8,9 +8,7 @@ class EmotionLoader(object):
 
     """Data Handler that loads robot pushing data."""
 
-    def __init__(self, transform, all_labels=False): #image_width, crop_sz=300):
-        #self.crop_sz = 300
-        #self.image_width = image_width
+    def __init__(self, transform, all_labels=False):
         self.transform = transform
         self.all_labels = all_labels
         fname = '../cleaned.csv'

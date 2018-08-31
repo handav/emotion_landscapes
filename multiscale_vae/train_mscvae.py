@@ -40,6 +40,7 @@ opt = parser.parse_args()
 
 name = 'z_dim=%d-lr=%.5f-beta=%.4f-all_labels=%s' % (opt.z_dim, opt.lr, opt.beta, opt.all_labels)
 opt.log_dir = '%s/%s_%dx%d/%s' % (opt.log_dir, opt.dataset, opt.image_width, opt.image_width, name)
+print(opt)
 
 os.makedirs('%s/gen/' % opt.log_dir, exist_ok=True)
 os.makedirs('%s/rec/' % opt.log_dir, exist_ok=True)
@@ -49,8 +50,6 @@ random.seed(opt.seed)
 torch.manual_seed(opt.seed)
 torch.cuda.manual_seed_all(opt.seed)
 dtype = torch.cuda.FloatTensor
-
-print(opt)
 
 # ---------------- optimizers ----------------
 if opt.optimizer == 'adam':
@@ -89,15 +88,21 @@ l1_criterion = nn.L1Loss()
 mse_criterion.cuda()
 l1_criterion.cuda()
 
+# scale up x
 def multiscale(x):
     scales = []
     tmp = []
     for i in range(opt.nlevels):
+        # if it's the first level, just work with x
         if i == 0:
             scales.append(x)
-            tmp.append(x)
+            tmp.append(x) 
         else:
+            # nn.AvgPool2d(kernel size, stride) returns a function
+            # that is called on the previous x
             tmp.append(nn.AvgPool2d(2, 2)(tmp[i-1]))
+            # nn.Upsample(scale_factor) returns a function
+            # that is called on the output of the average pooling
             scales.append(nn.Upsample(scale_factor=2**i)(tmp[i]))
     return [scales[i] for i in range(opt.nlevels-1, -1, -1)]
 
@@ -111,14 +116,6 @@ def fixed_kl_criterion(mu, logvar):
   KLD /= opt.batch_size  
   return KLD
 
-# def kl_criterion(mu1, logvar1, mu2, logvar2):
-#     # KL( N(mu_1, sigma2_1) || N(mu_2, sigma2_2)) = 
-#     #   log( sqrt(
-#     # 
-#     sigma1 = logvar1.mul(0.5).exp() 
-#     sigma2 = logvar2.mul(0.5).exp() 
-#     kld = torch.log(sigma2/sigma1) + (torch.exp(logvar1) + (mu1 - mu2)**2)/(2*torch.exp(logvar2)) - 1/2
-#     return kld.sum() / opt.batch_size
 # ---------------- datasets ----------------
 
 # loads the dataset
@@ -181,7 +178,8 @@ def plot_rec(x, y, s, epoch):
     fname = '%s/rec/%d_%d.png' % (opt.log_dir, epoch, opt.image_width/(2**(opt.nlevels-s-1))) 
     utils.save_tensors_image(fname, to_plot)
 
-# this will plot such that each row is a different class and each column is a different z
+# this will plot such that each row is a different class
+# each column is a different z
 def plot_gen(epoch):
     nrow = opt.nclass 
     ncol = int(opt.batch_size/nrow) 
@@ -190,7 +188,6 @@ def plot_gen(epoch):
         for j in range(ncol):
             y[i*ncol+j][i] = 1
     scales = []
-    residuals = []
     for s in range(opt.nlevels):
         if s == 0:
             z = make_plot_z() #torch.cuda.FloatTensor(opt.batch_size, opt.z_dim, 1, 1).normal_()
@@ -202,7 +199,6 @@ def plot_gen(epoch):
             #gen = nn.Sigmoid()(scales[s-1] + residual)
             #residual.data = residual.data.mul(0.5).add(0.5)
         scales.append(gen)
-        #residuals.append(residual)
         
     to_plot = []
     for i in range(nrow):
@@ -222,7 +218,6 @@ def plot_gen(epoch):
         for j in range(ncol):
             row.append(scales[0][i*ncol+j])
             for s in range(1, opt.nlevels):
-                #row.append(residuals[s][i*ncol+j])
                 row.append(scales[s][i*ncol+j])
         to_plot.append(row)
 
@@ -235,7 +230,7 @@ def train(x, y, s):
     netE[s].zero_grad()
     netD[s].zero_grad()
     #z, mu, logvar = netE[i](x - canvas[i])
-    # for the first level, 
+    # for the first level
     if s == 0:
         z, mu, logvar = netE[s]((x[s], y))
         rec = netD[s](torch.cat([z, y], 1))
@@ -254,6 +249,7 @@ def train(x, y, s):
         loss = mse + 0.1*opt.beta*kld
     loss.backward()
 
+    # updates the parameters
     netE_optimizer[s].step()
     netD_optimizer[s].step()
 
@@ -303,4 +299,3 @@ for epoch in range(opt.niter):
             '%s/model.pth' % opt.log_dir)
     if epoch % 10 == 0:
         print('log dir: %s' % opt.log_dir)
-           

@@ -75,36 +75,6 @@ class conditional_stochastic_encoder(nn.Module):
         z = self.reparameterize(mu, logvar)
         return z, mu, logvar
 
-class stochastic_encoder(nn.Module):
-    def __init__(self, z_dim, nc=1, nf=64):
-        super(stochastic_encoder, self).__init__()
-        self.main = nn.Sequential(
-                # input is (nc) x 64 x 64
-                dcgan_conv(nc, nf),
-                # state size. (nf) x 8 x 8
-                dcgan_conv(nf, nf * 2),
-                # state size. (nf*2) x 16 x 16
-                dcgan_conv(nf * 2, nf * 4),
-                # state size. (nf*4) x 8 x 8
-                dcgan_conv(nf * 4, nf * 8),
-                # state size. (nf*8) x 4 x 4
-        )
-        self.mu_net = nn.Conv2d(nf * 8, z_dim, 4, 1, 0)
-        self.logvar_net = nn.Conv2d(nf * 8, z_dim, 2, 1, 0)
-
-    def reparameterize(self, mu, logvar):
-        logvar = logvar.mul(0.5).exp_()
-        eps = Variable(logvar.data.new(logvar.size()).normal_())
-        return eps.mul(logvar).add_(mu)
-
-    def forward(self, input):
-        out = self.main(input)
-        mu = self.mu_net(out)
-        logvar = self.logvar_net(out)
-        z = self.reparameterize(mu, logvar)
-        return z, mu, logvar
-
-
 class decoder(nn.Module):
     def __init__(self, z_dim, nc=1, nonlinearity='sigmoid'):
         super(decoder, self).__init__()
