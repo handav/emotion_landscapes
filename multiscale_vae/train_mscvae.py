@@ -109,19 +109,19 @@ def fixed_kl_criterion(mu, logvar):
   KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
   # Normalise by same number of elements as in reconstruction
   KLD /= opt.batch_size  
-
   return KLD
 
-def kl_criterion(mu1, logvar1, mu2, logvar2):
-    # KL( N(mu_1, sigma2_1) || N(mu_2, sigma2_2)) = 
-    #   log( sqrt(
-    # 
-    sigma1 = logvar1.mul(0.5).exp() 
-    sigma2 = logvar2.mul(0.5).exp() 
-    kld = torch.log(sigma2/sigma1) + (torch.exp(logvar1) + (mu1 - mu2)**2)/(2*torch.exp(logvar2)) - 1/2
-    return kld.sum() / opt.batch_size
+# def kl_criterion(mu1, logvar1, mu2, logvar2):
+#     # KL( N(mu_1, sigma2_1) || N(mu_2, sigma2_2)) = 
+#     #   log( sqrt(
+#     # 
+#     sigma1 = logvar1.mul(0.5).exp() 
+#     sigma2 = logvar2.mul(0.5).exp() 
+#     kld = torch.log(sigma2/sigma1) + (torch.exp(logvar1) + (mu1 - mu2)**2)/(2*torch.exp(logvar2)) - 1/2
+#     return kld.sum() / opt.batch_size
 # ---------------- datasets ----------------
 
+# loads the dataset
 trainset = utils.load_dataset(opt) 
 train_loader = torch.utils.data.DataLoader(
         trainset, 
@@ -154,6 +154,7 @@ def make_plot_z():
             z[i*ncol+j].copy_(zz)
     return z
 
+# create the reconstructed images
 def plot_rec(x, y, s, epoch):
     y = y.view(opt.batch_size, opt.nclass, 1, 1)
 
@@ -228,11 +229,13 @@ def plot_gen(epoch):
     fname = '%s/gen/scales_%d.png' % (opt.log_dir, epoch) 
     utils.save_tensors_image(fname, to_plot)
 
+# train with x, y (labels), s (level number)
 def train(x, y, s):
     y = y.view(opt.batch_size, opt.nclass, 1, 1)
     netE[s].zero_grad()
     netD[s].zero_grad()
     #z, mu, logvar = netE[i](x - canvas[i])
+    # for the first level, 
     if s == 0:
         z, mu, logvar = netE[s]((x[s], y))
         rec = netD[s](torch.cat([z, y], 1))
@@ -240,6 +243,8 @@ def train(x, y, s):
         residual = x[s] - x[s-1]
         z, mu, logvar = netE[s]((torch.cat([x[s], residual], 1), y))
         rec = netD[s]([x[s-1], torch.cat([z, y], 1)])
+
+    # get loss: mean squared error (mse) and kl-divergence (kld)
     mse = l1_criterion(rec, x[s])
     kld = fixed_kl_criterion(mu, logvar)
 
