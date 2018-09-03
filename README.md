@@ -9,10 +9,6 @@ python train_mscvae.py --beta 0.00005 --all_labels --z_dim 8 --image_width 64 --
 
 See all additional arguments in the train_mscvae.py script.
 
-Sample images:
-
-![Iteration](https://github.com/handav/emotion_landscapes/blob/master/262.png)
-
 Contact:
 
 http://hannahishere.com/
