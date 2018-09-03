@@ -11,7 +11,9 @@ See all additional arguments in the train_mscvae.py script.
 
 Sample images:
 
-![Iteration 262](https://github.com/handav/emotion_landscapes/tree/master/sample_images/262.png)
+[[https://github.com/handav/emotion_landscapes/tree/master/sample_images/262.png|alt=iteration262]]
+
+(https://github.com/handav/emotion_landscapes/tree/master/sample_images/262.png)
 
 Contact:
 
